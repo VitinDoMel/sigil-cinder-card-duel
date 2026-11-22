@@ -1,0 +1,6 @@
+[
+  { "name": "1-table-duel.jpg", "query": "?shot=play&seed=7" },
+  { "name": "2-title-screen.jpg", "query": "?shot=title&seed=7" },
+  { "name": "3-victory-screen.jpg", "query": "?shot=win&seed=7" },
+  { "name": "4-defeat-screen.jpg", "query": "?shot=loss&seed=7" }
+]
