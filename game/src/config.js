@@ -10,10 +10,10 @@ export const BASE_AETHER = 3;
 export const MAX_AETHER = 6;
 export const MAX_CYCLES_PER_TURN = 1;
 
-export const CARD_W = 112;
-export const CARD_H = 158;
-export const OPP_CARD_W = 84;
-export const OPP_CARD_H = 116;
+export const CARD_W = 118;
+export const CARD_H = 166;
+export const OPP_CARD_W = 100;
+export const OPP_CARD_H = 120;
 
 export const SUITS = {
   ember: {

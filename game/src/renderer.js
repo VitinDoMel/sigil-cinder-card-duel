@@ -242,93 +242,122 @@ export class TableRenderer {
     ctx.rotate(angle);
     ctx.scale(scale, scale);
 
-    // Shadow
-    ctx.fillStyle = selected ? 'rgba(250, 204, 21, 0.28)' : 'rgba(0, 0, 0, 0.55)';
-    this.roundRect(-w / 2 + (selected ? 0 : 4), -h / 2 + (selected ? 0 : 6), w, h, 10);
-    ctx.fill();
+    // High-contrast outer glow / drop shadow
+    if (selected) {
+      ctx.shadowColor = '#fde047';
+      ctx.shadowBlur = 16;
+    } else if (hovered) {
+      ctx.shadowColor = suit.bright;
+      ctx.shadowBlur = 12;
+    } else {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 4;
+    }
 
-    // Outer frame
+    // Outer frame with deep background
     const bgGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
     bgGrad.addColorStop(0, suit.dark);
-    bgGrad.addColorStop(0.55, '#161b24');
-    bgGrad.addColorStop(1, '#10141b');
+    bgGrad.addColorStop(0.4, '#121720');
+    bgGrad.addColorStop(1, '#0b0f14');
     ctx.fillStyle = bgGrad;
     this.roundRect(-w / 2, -h / 2, w, h, 10);
     ctx.fill();
 
-    ctx.lineWidth = selected ? 3 : hovered ? 2.5 : 2;
+    // Reset shadow for inner elements
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // High-contrast double border
+    ctx.lineWidth = selected ? 3.5 : hovered ? 3 : 2.5;
     ctx.strokeStyle = selected
       ? '#fde047'
       : hovered
         ? suit.bright
         : playable
           ? suit.border
-          : '#334155';
+          : '#475569';
     this.roundRect(-w / 2, -h / 2, w, h, 10);
     ctx.stroke();
 
-    // Header band
-    ctx.fillStyle = suit.color + '38';
-    this.roundRect(-w / 2 + 4, -h / 2 + 4, w - 8, compact ? 20 : 26, 6);
+    // Top Header band: crisp high-contrast background
+    const headerH = compact ? 26 : 30;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    this.roundRect(-w / 2 + 3, -h / 2 + 3, w - 6, headerH, 7);
     ctx.fill();
+    ctx.strokeStyle = suit.border + '66';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-    // Cost orb top-left
-    const orbR = compact ? 10 : 13;
-    const orbX = -w / 2 + orbR + 3;
-    const orbY = -h / 2 + orbR + 3;
-    ctx.fillStyle = playable ? '#1e293b' : '#3f151b';
+    // Cost Orb top-left (crisp gold, high contrast)
+    const orbR = compact ? 11 : 14;
+    const orbX = -w / 2 + orbR + 4;
+    const orbY = -h / 2 + orbR + 4;
+    ctx.fillStyle = '#0f172a';
     ctx.beginPath();
     ctx.arc(orbX, orbY, orbR, 0, Math.PI * 2);
     ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = playable ? PALETTE.goldBright : '#f87171';
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = playable ? PALETTE.goldBright : '#ef4444';
     ctx.stroke();
 
     ctx.fillStyle = playable ? '#fef08a' : '#fca5a5';
-    ctx.font = `800 ${compact ? 12 : 14}px system-ui, sans-serif`;
+    ctx.font = `900 ${compact ? 13 : 15}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(card.cost), orbX, orbY + 0.5);
 
-    // Suit icon top-right
-    this.drawSuitIcon(card.suit, w / 2 - (compact ? 13 : 16), -h / 2 + (compact ? 14 : 16), compact ? 7.5 : 9.5);
+    // Suit Icon top-right
+    const iconR = compact ? 8.5 : 11;
+    const iconX = w / 2 - iconR - 4;
+    const iconY = -h / 2 + iconR + 4;
+    this.drawSuitIcon(card.suit, iconX, iconY, iconR);
 
-    // Card Name
-    ctx.fillStyle = PALETTE.ivory;
-    ctx.font = `700 ${compact ? 9.5 : 11}px system-ui, sans-serif`;
+    // Card Name: centered in header between orb and icon, larger and bold
+    const nameMaxW = w - (orbR * 2 + iconR * 2 + 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `800 ${compact ? 11.5 : 12.5}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(card.name, 0, -h / 2 + (compact ? 31 : 40), w - 12);
+    ctx.fillText(card.name, 0, -h / 2 + (compact ? 15 : 17), nameMaxW);
 
-    // Artwork window
-    const artY = compact ? -4 : -8;
-    const artSize = compact ? 18 : 26;
-    ctx.fillStyle = 'rgba(7, 12, 18, 0.72)';
-    this.roundRect(-w / 2 + 8, artY - (compact ? 21 : 28), w - 16, compact ? 42 : 56, 6);
+    // Artwork central window
+    const artY = compact ? 1 : -4;
+    const artSize = compact ? 19 : 28;
+    const artH = compact ? 42 : 58;
+    ctx.fillStyle = 'rgba(5, 9, 14, 0.85)';
+    this.roundRect(-w / 2 + 6, artY - artH / 2, w - 12, artH, 6);
     ctx.fill();
-    ctx.strokeStyle = suit.color + '55';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = suit.color + '66';
+    ctx.lineWidth = 1.2;
     ctx.stroke();
     this.drawCardArtwork(card, 0, artY, artSize);
 
-    // Big Power number
+    // Big Power number with crisp outline for punchy readability
+    const powerY = h / 2 - (compact ? 30 : 38);
+    ctx.font = `900 ${compact ? 22 : 26}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.strokeText(String(card.power), 0, powerY);
     ctx.fillStyle = '#ffffff';
-    ctx.font = `900 ${compact ? 18 : 22}px system-ui, sans-serif`;
-    ctx.fillText(String(card.power), 0, h / 2 - (compact ? 31 : 41));
+    ctx.fillText(String(card.power), 0, powerY);
 
-    // Tag pill
+    // Tag Pill at bottom (clean high-contrast background)
+    const tagH = compact ? 18 : 22;
+    const tagY = h / 2 - (compact ? 12 : 14);
     ctx.fillStyle = suit.color + '44';
-    this.roundRect(-w / 2 + 8, h / 2 - (compact ? 22 : 27), w - 16, compact ? 16 : 20, 5);
+    this.roundRect(-w / 2 + 6, tagY - tagH / 2, w - 12, tagH, 5);
     ctx.fill();
-    ctx.strokeStyle = suit.border + '88';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = suit.border;
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    ctx.fillStyle = suit.bright;
-    ctx.font = `800 ${compact ? 9 : 10.5}px system-ui, sans-serif`;
-    ctx.fillText(card.tag, 0, h / 2 - (compact ? 13.5 : 16.5), w - 18);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `800 ${compact ? 10.5 : 11.5}px system-ui, sans-serif`;
+    ctx.fillText(card.tag, 0, tagY + 0.5, w - 14);
 
     if (!playable) {
-      ctx.fillStyle = 'rgba(8, 12, 18, 0.38)';
+      ctx.fillStyle = 'rgba(5, 8, 13, 0.45)';
       this.roundRect(-w / 2, -h / 2, w, h, 10);
       ctx.fill();
     }
@@ -570,7 +599,7 @@ export class TableRenderer {
 
     // Center: Opponent's Revealed Intent Slots
     ctx.fillStyle = 'rgba(11, 19, 27, 0.72)';
-    this.roundRect(390, 70, 510, 138, 10);
+    this.roundRect(390, 70, 510, 148, 10);
     ctx.fill();
     ctx.strokeStyle = 'rgba(248, 113, 113, 0.35)';
     ctx.stroke();
@@ -578,20 +607,20 @@ export class TableRenderer {
     ctx.fillStyle = '#fca5a5';
     ctx.font = '800 11px system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('OPPONENT TELEGRAPHED PLAYS (COUNTERABLE)', 406, 86);
+    ctx.fillText('OPPONENT TELEGRAPHED PLAYS (COUNTERABLE)', 406, 85);
 
     const oppXs = [475, 645, 815];
     for (let i = 0; i < MAX_SLOTS; i += 1) {
       const oppCard = s.opponentSlots[i];
       if (oppCard) {
-        this.drawCardFace(oppCard, oppXs[i], 149, OPP_CARD_W, 110, {
+        this.drawCardFace(oppCard, oppXs[i], 152, OPP_CARD_W, OPP_CARD_H, {
           playable: true,
           compact: true,
         });
       } else {
         ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
         ctx.setLineDash([4, 4]);
-        this.roundRect(oppXs[i] - OPP_CARD_W / 2, 149 - 55, OPP_CARD_W, 110, 8);
+        this.roundRect(oppXs[i] - OPP_CARD_W / 2, 152 - OPP_CARD_H / 2, OPP_CARD_W, OPP_CARD_H, 8);
         ctx.stroke();
         ctx.setLineDash([]);
       }
@@ -974,76 +1003,89 @@ export class TableRenderer {
     const ctx = this.ctx;
     this.drawTableBackground();
 
+    // Arcane occult ring glow in title screen background
+    const centerGrad = ctx.createRadialGradient(640, 200, 20, 640, 200, 360);
+    centerGrad.addColorStop(0, 'rgba(224, 179, 84, 0.16)');
+    centerGrad.addColorStop(0.5, 'rgba(239, 68, 68, 0.08)');
+    centerGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = centerGrad;
+    ctx.beginPath();
+    ctx.arc(640, 200, 360, 0, Math.PI * 2);
+    ctx.fill();
+
     // Decorative fanned showcase cards in top-center
     const showcase = [
-      { card: CARD_CATALOG.pyre_nova, x: 485, y: 205, angle: -0.22 },
-      { card: CARD_CATALOG.chronos_seal, x: 640, y: 185, angle: 0 },
-      { card: CARD_CATALOG.abyssal_surge, x: 795, y: 205, angle: 0.22 },
+      { card: CARD_CATALOG.pyre_nova, x: 475, y: 195, angle: -0.22 },
+      { card: CARD_CATALOG.chronos_seal, x: 640, y: 175, angle: 0 },
+      { card: CARD_CATALOG.abyssal_surge, x: 805, y: 195, angle: 0.22 },
     ];
     for (const item of showcase) {
-      this.drawCardFace(item.card, item.x, item.y, 126, 178, {
+      this.drawCardFace(item.card, item.x, item.y, 134, 188, {
         angle: item.angle,
         playable: true,
       });
     }
 
     // Center Title Banner
-    ctx.fillStyle = 'rgba(9, 16, 22, 0.88)';
-    this.roundRect(210, 290, 860, 395, 16);
+    ctx.fillStyle = 'rgba(9, 16, 22, 0.9)';
+    this.roundRect(200, 285, 880, 405, 16);
     ctx.fill();
     ctx.strokeStyle = PALETTE.gold;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     ctx.textAlign = 'center';
     ctx.fillStyle = PALETTE.goldBright;
-    ctx.font = '900 46px Georgia, serif';
-    ctx.fillText('SIGIL & CINDER', 640, 344);
+    ctx.font = '900 48px Georgia, serif';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 18;
+    ctx.fillText('SIGIL & CINDER', 640, 340);
+    ctx.shadowBlur = 0;
 
     ctx.fillStyle = PALETTE.slateText;
-    ctx.font = '700 15px system-ui, sans-serif';
+    ctx.font = '800 15px system-ui, sans-serif';
     ctx.fillText(
       'TACTICAL ARCANE CARD DUEL  •  READ INTENTS, CHAIN CATALYSTS, BREAK THE RIVAL',
       640,
-      380
+      376
     );
 
     // 4 Suit Legend Badges
     SUIT_ORDER.forEach((suitId, idx) => {
       const suit = SUITS[suitId];
-      const bx = 252 + idx * 196;
-      const by = 406;
+      const bx = 242 + idx * 202;
+      const by = 402;
       ctx.fillStyle = suit.dark;
-      this.roundRect(bx, by, 184, 44, 8);
+      this.roundRect(bx, by, 192, 46, 8);
       ctx.fill();
-      ctx.strokeStyle = suit.border + '99';
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = suit.border;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      this.drawSuitIcon(suitId, bx + 22, by + 22, 10);
+      this.drawSuitIcon(suitId, bx + 22, by + 23, 11);
       ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 12px system-ui, sans-serif';
+      ctx.fillText(suit.label, bx + 42, by + 17);
       ctx.fillStyle = suit.bright;
-      ctx.font = '800 11.5px system-ui, sans-serif';
-      ctx.fillText(suit.label, bx + 40, by + 16);
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '600 10.5px system-ui, sans-serif';
-      ctx.fillText(suit.role, bx + 40, by + 32);
+      ctx.font = '700 11px system-ui, sans-serif';
+      ctx.fillText(suit.role, bx + 42, by + 34);
     });
 
     // Rival Selector Cards
     ctx.textAlign = 'center';
     ctx.fillStyle = PALETTE.ivory;
     ctx.font = '800 13px system-ui, sans-serif';
-    ctx.fillText('CHOOSE YOUR CHALLENGER', 640, 476);
+    ctx.fillText('CHOOSE YOUR CHALLENGER', 640, 474);
 
     RIVALS.forEach((rival, idx) => {
-      const rx = 256 + idx * 260;
-      const ry = 492;
+      const rx = 246 + idx * 268;
+      const ry = 490;
       const isSelected = this.engine.rivalIndex === idx;
-      const hovered = this.addButton(`rival_${idx}`, rx, ry, 244, 96);
+      const hovered = this.addButton(`rival_${idx}`, rx, ry, 254, 98);
 
       ctx.fillStyle = isSelected ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 35, 0.85)';
-      this.roundRect(rx, ry, 244, 96, 10);
+      this.roundRect(rx, ry, 254, 98, 10);
       ctx.fill();
       ctx.strokeStyle = isSelected ? PALETTE.goldBright : hovered ? rival.accent : '#334155';
       ctx.lineWidth = isSelected ? 2.5 : 1.4;
@@ -1094,7 +1136,7 @@ export class TableRenderer {
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
     ctx.fillStyle = 'rgba(11, 18, 26, 0.94)';
-    this.roundRect(350, 155, 580, 410, 16);
+    this.roundRect(330, 130, 620, 465, 16);
     ctx.fill();
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2.5;
@@ -1103,7 +1145,7 @@ export class TableRenderer {
     ctx.textAlign = 'center';
     ctx.fillStyle = accent;
     ctx.font = '900 42px Georgia, serif';
-    ctx.fillText(isWin ? 'VICTORY' : 'DEFEAT', 640, 220);
+    ctx.fillText(isWin ? 'VICTORY' : 'DEFEAT', 640, 185);
 
     ctx.fillStyle = PALETTE.ivory;
     ctx.font = '700 16px system-ui, sans-serif';
@@ -1112,7 +1154,7 @@ export class TableRenderer {
         ? `${s.rival.name}, ${s.rival.title} Defeated in ${s.turn} Turns`
         : `Ward Shattered by ${s.rival.name} on Turn ${s.turn}`,
       640,
-      260
+      218
     );
 
     const stats = [
@@ -1122,23 +1164,62 @@ export class TableRenderer {
       ['COMBOS TRIGGERED', String(s.combosTriggered)],
     ];
     stats.forEach(([k, v], idx) => {
-      const sy = 302 + idx * 38;
+      const sy = 250 + idx * 36;
       ctx.fillStyle = 'rgba(30, 41, 59, 0.65)';
-      this.roundRect(410, sy, 460, 30, 6);
+      this.roundRect(380, sy, 520, 28, 6);
       ctx.fill();
       ctx.textAlign = 'left';
       ctx.fillStyle = PALETTE.slateText;
       ctx.font = '700 12px system-ui, sans-serif';
-      ctx.fillText(k, 428, sy + 15);
+      ctx.fillText(k, 398, sy + 14);
       ctx.textAlign = 'right';
       ctx.fillStyle = PALETTE.goldBright;
       ctx.font = '900 15px system-ui, sans-serif';
-      ctx.fillText(v, 852, sy + 15);
+      ctx.fillText(v, 882, sy + 14);
     });
 
-    const againHover = this.addButton('play_again', 398, 486, 224, 50);
+    // Key Catalyst cards used in victory
+    ctx.textAlign = 'left';
+    ctx.fillStyle = PALETTE.gold;
+    ctx.font = '800 12px system-ui, sans-serif';
+    ctx.fillText(isWin ? 'TRIUMPHANT RITUAL CARDS:' : 'BATTLE OVERVIEW:', 382, 412);
+
+    const cardsToShow = isWin
+      ? [
+          { name: 'Cinder Spark', suit: 'ember', tag: 'DMG 5' },
+          { name: 'Chronos Seal', suit: 'brass', tag: 'ECHO +7' },
+          { name: 'Steam Blast', suit: 'tide', tag: 'CATALYST' },
+        ]
+      : [
+          { name: 'Ember Cleave', suit: 'ember', tag: 'ENEMY 8' },
+          { name: 'Sovereign Wrath', suit: 'ember', tag: 'ENEMY 12' },
+          { name: 'Ward Break', suit: 'brass', tag: 'DEFEAT' },
+        ];
+
+    cardsToShow.forEach((c, idx) => {
+      const cx = 380 + idx * 178;
+      const cy = 424;
+      const suit = SUITS[c.suit] || SUITS.brass;
+      ctx.fillStyle = suit.dark;
+      this.roundRect(cx, cy, 164, 48, 6);
+      ctx.fill();
+      ctx.strokeStyle = suit.border + '88';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      this.drawSuitIcon(c.suit, cx + 18, cy + 24, 9);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 12px system-ui, sans-serif';
+      ctx.fillText(c.name, cx + 34, cy + 18);
+      ctx.fillStyle = suit.bright;
+      ctx.font = '800 10.5px system-ui, sans-serif';
+      ctx.fillText(c.tag, cx + 34, cy + 34);
+    });
+
+    const againHover = this.addButton('play_again', 380, 506, 240, 52);
     ctx.fillStyle = againHover ? '#334155' : '#1e293b';
-    this.roundRect(398, 486, 224, 50, 9);
+    this.roundRect(380, 506, 240, 52, 9);
     ctx.fill();
     ctx.strokeStyle = PALETTE.gold;
     ctx.lineWidth = 1.6;
@@ -1146,17 +1227,17 @@ export class TableRenderer {
     ctx.textAlign = 'center';
     ctx.fillStyle = PALETTE.ivory;
     ctx.font = '800 14px system-ui, sans-serif';
-    ctx.fillText('REMATCH  [R]', 510, 511);
+    ctx.fillText('REMATCH  [R]', 500, 533);
 
-    const nextHover = this.addButton(isWin ? 'next_rival' : 'back_title', 658, 486, 224, 50);
+    const nextHover = this.addButton(isWin ? 'next_rival' : 'back_title', 660, 506, 240, 52);
     ctx.fillStyle = nextHover ? accent : '#d97706';
-    this.roundRect(658, 486, 224, 50, 9);
+    this.roundRect(660, 506, 240, 52, 9);
     ctx.fill();
     ctx.strokeStyle = '#fef3c7';
     ctx.stroke();
     ctx.fillStyle = '#0f172a';
     ctx.font = '900 14px system-ui, sans-serif';
-    ctx.fillText(isWin ? 'NEXT RIVAL  [ENTER]' : 'TITLE SCREEN', 770, 511);
+    ctx.fillText(isWin ? 'NEXT RIVAL  [ENTER]' : 'TITLE SCREEN', 780, 533);
   }
 
   drawRulesModal() {
