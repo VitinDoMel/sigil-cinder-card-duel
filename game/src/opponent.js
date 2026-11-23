@@ -9,6 +9,13 @@ export const RIVALS = [
     accent: '#f59e0b',
     badge: 'I',
     style: 'Balanced Strikes & Brass Wards',
+    passiveName: 'BRASS HARMONY',
+    passiveDesc: '+2 Ward whenever staging Brass',
+    banter: {
+      open: 'Your aether flickers before my crucible!',
+      combo: 'A catalyst spark? Clever — try breaking my copper ward!',
+      hurt: 'The alembic cracks... stoke the furnace!',
+    },
     deckProfile: [
       { id: 'opp_brass_bolt', name: 'Brass Bolt', suit: 'brass', cost: 1, power: 5, tag: 'STRIKE 5', dmg: 5, ward: 0, burn: 0, venom: 0, heal: 0 },
       { id: 'opp_copper_wall', name: 'Copper Wall', suit: 'brass', cost: 1, power: 5, tag: 'WARD +5', dmg: 0, ward: 5, burn: 0, venom: 0, heal: 0 },
@@ -26,6 +33,13 @@ export const RIVALS = [
     accent: '#38bdf8',
     badge: 'II',
     style: 'Deep Ward & Venom Attrition',
+    passiveName: 'TIDAL EBB',
+    passiveDesc: '+2 Venom on unblocked clash',
+    banter: {
+      open: 'The tideglass reads every card you hold.',
+      combo: 'Resonance ripples — yet the abyss answers.',
+      hurt: 'My sea-glass cracks... tighten the undertow!',
+    },
     deckProfile: [
       { id: 'opp_glass_pike', name: 'Glass Pike', suit: 'tide', cost: 2, power: 6, tag: 'STRIKE 6', dmg: 6, ward: 3, burn: 0, venom: 0, heal: 0 },
       { id: 'opp_reef_bastion', name: 'Reef Bastion', suit: 'tide', cost: 2, power: 8, tag: 'WARD +8', dmg: 0, ward: 8, burn: 0, venom: 0, heal: 0 },
@@ -43,6 +57,13 @@ export const RIVALS = [
     accent: '#ef4444',
     badge: 'III',
     style: 'Relentless Infernos & Piercing',
+    passiveName: 'INFERNO SURGE',
+    passiveDesc: '+3 DMG when below 50% HP',
+    banter: {
+      open: 'Ash and crown — nothing survives my pyre!',
+      combo: 'Chain your sigils. My flames burn hotter!',
+      hurt: 'Below half blood... feel the Sovereign Surge!',
+    },
     deckProfile: [
       { id: 'opp_ember_cleave', name: 'Ember Cleave', suit: 'ember', cost: 2, power: 8, tag: 'STRIKE 8', dmg: 8, ward: 0, burn: 2, venom: 0, heal: 0 },
       { id: 'opp_crown_parry', name: 'Crown Guard', suit: 'brass', cost: 2, power: 6, tag: 'WARD +6', dmg: 3, ward: 6, burn: 0, venom: 0, heal: 0 },

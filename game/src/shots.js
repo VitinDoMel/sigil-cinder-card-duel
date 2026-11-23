@@ -37,8 +37,11 @@ export function stageShotScene(shotName, engine, animator) {
     playSmartTurn(engine, false);
 
     const s = engine.state;
-    // Stage 2 complementary cards in slots 0 and 1 so the mid-duel cover screenshot shows:
-    // active Catalyst bridge, rich multi-suit player hand, opponent hand, opponent intent, HP/Ward, and Score.
+    // Ensure lethal climax is highlighted when pairing slotted cards in APEX + Catalyst
+    if (s.opponent.hp > 16) s.opponent.hp = 16;
+    s.rivalBanter = s.rival.banter?.combo || 'A catalyst spark? Clever — try breaking my ward!';
+
+    // Stage 2 complementary cards in slots 0 and 1 (APEX +2) to show active Catalyst + LETHAL
     const slotCandidates = s.hand.filter((c) => c.cost <= s.player.aether);
     const first =
       slotCandidates.find((c) => c.suit === 'ember') ||
@@ -55,8 +58,8 @@ export function stageShotScene(shotName, engine, animator) {
       s.selectedCardUid = s.hand[Math.floor(s.hand.length / 2)].uid;
     }
 
-    animator.spawnFloatText(775, 58, '-11', '#fb7185', 1.25);
-    animator.spawnBurst(515, 315, 'ember', 20, 120);
+    animator.spawnFloatText(875, 48, '-11', '#fb7185', 1.35);
+    animator.spawnBurst(515, 330, 'ember', 24, 135);
     return;
   }
 
