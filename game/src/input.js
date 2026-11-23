@@ -244,16 +244,6 @@ export class InputController {
       this.engine.resetMatch(nextIdx, (this.engine.seed + 29) & 0xffff, SCREEN_PLAY);
       this.animator.reset();
       this.sound.playDeal();
-      return;
-    }
-    if (id.startsWith('pick_relic_')) {
-      const idx = Number(id.split('_')[2]);
-      if (this.engine.pickRelic(idx)) {
-        const nextIdx = (this.engine.rivalIndex + 1) % RIVALS.length;
-        this.engine.resetMatch(nextIdx, (this.engine.seed + 29) & 0xffff, SCREEN_PLAY);
-        this.animator.reset();
-        this.sound.playDeal();
-      }
     }
   }
 
@@ -321,13 +311,9 @@ export class InputController {
     }
 
     if (this.engine.screen === SCREEN_WIN || this.engine.screen === SCREEN_LOSS) {
-      if (this.engine.screen === SCREEN_WIN && (key === '1' || key === '2' || key === '3')) {
-        this.triggerButton(`pick_relic_${Number(key) - 1}`);
-        return;
-      }
       if (key === 'enter' || key === ' ' || key === 'r') {
         ev.preventDefault();
-        this.triggerButton(key === 'r' ? 'play_again' : this.engine.screen === SCREEN_WIN ? 'next_rival' : 'play_again');
+        this.triggerButton('play_again');
       }
       return;
     }

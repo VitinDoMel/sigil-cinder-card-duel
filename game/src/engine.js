@@ -27,30 +27,6 @@ export const SCREEN_PLAY = 'play';
 export const SCREEN_WIN = 'win';
 export const SCREEN_LOSS = 'loss';
 
-export const RELICS = [
-  {
-    id: 'cinder_core',
-    name: 'Cinder Core',
-    suit: 'ember',
-    short: '+2 Burn on Ember plays',
-    desc: 'Every Ember card slotted applies +2 extra Burn.',
-  },
-  {
-    id: 'tideglass_lens',
-    name: 'Tideglass Lens',
-    suit: 'tide',
-    short: 'Keep 75% Ward per turn',
-    desc: 'Retain 75% of your Ward between turns instead of 50%.',
-  },
-  {
-    id: 'brass_chronometer',
-    name: 'Brass Chronometer',
-    suit: 'brass',
-    short: 'APEX Slot grants +3',
-    desc: 'Center APEX slot empowers its card by +3 instead of +2.',
-  },
-];
-
 export class GameEngine {
   constructor(seed = 7) {
     this.seed = seed;
@@ -58,7 +34,6 @@ export class GameEngine {
     this.rivalIndex = 0;
     this.screen = SCREEN_TITLE;
     this.highScore = 0;
-    this.activeRelic = RELICS[0];
     this.events = [];
     this.state = null;
     this.resetMatch(0, seed, SCREEN_TITLE);
@@ -120,7 +95,6 @@ export class GameEngine {
       opponentHand: [],
       opponentSlots: [null, null, null],
       selectedCardUid: null,
-      rivalBanter: rival.banter?.open || 'Show me your hand.',
       lastLog: ['Draw 5 cards. Counter the rival intent!'],
     };
 
@@ -251,21 +225,17 @@ export class GameEngine {
       }
     }
 
-    const apexBonus = this.activeRelic?.id === 'brass_chronometer' ? 3 : 2;
-    const hasCinderCore = this.activeRelic?.id === 'cinder_core';
-
     for (let i = 0; i < MAX_SLOTS; i += 1) {
       const card = s.slots[i];
       if (!card) continue;
       const mult = slotPowerMult[i];
       const e = card.effect;
-      const slotApex = i === 1 ? apexBonus : 0;
-      totalDmg += ((e.dmg || 0) + (e.dmg ? slotApex : 0)) * mult;
-      totalWard += ((e.ward || 0) + (!e.dmg && e.ward ? slotApex : 0)) * mult;
-      totalHeal += ((e.heal || 0) + (!e.dmg && !e.ward && e.heal ? slotApex : 0)) * mult;
+      totalDmg += (e.dmg || 0) * mult;
+      totalWard += (e.ward || 0) * mult;
+      totalHeal += (e.heal || 0) * mult;
       totalChill += (e.chill || 0) * mult;
       totalParry += (e.parry || 0) * mult;
-      totalBurn += ((e.burn || 0) + (hasCinderCore && card.suit === 'ember' ? 2 : 0)) * mult;
+      totalBurn += (e.burn || 0) * mult;
       totalVenom += (e.venom || 0) * mult;
       totalAether += (e.aether || 0) * mult;
       totalDraw += (e.draw || 0) * mult;
@@ -299,25 +269,8 @@ export class GameEngine {
     }
 
     const oppIntent = summarizeOpponentIntent(s.opponentSlots, s.opponent.chill + totalChill);
-    // Rival Passive preview adjustments
-    if (s.rival.id === 'vespera' && s.opponentSlots.some((c) => c && c.suit === 'brass')) {
-      oppIntent.ward += 2;
-    }
-    if (s.rival.id === 'kaelen' && s.opponent.hp <= s.opponent.maxHp * 0.5) {
-      oppIntent.effectiveDmg += 3;
-      oppIntent.rawDmg += 3;
-    }
-    const isLethal =
-      totalDmg > 0 &&
-      totalDmg >=
-        s.opponent.hp +
-          (synergy.catalysts.some((c) => c.id === 'steam_blast') || s.slots.some((c) => c && c.effect.pierce)
-            ? 0
-            : s.opponent.ward);
     return {
       synergy,
-      apexBonus,
-      isLethal,
       totalDmg,
       totalWard,
       totalHeal,
@@ -397,8 +350,8 @@ export class GameEngine {
       return true;
     }
 
-    // 4. Opponent executes telegraphed slots + passive
-    const intent = preview.oppIntent;
+    // 4. Opponent executes telegraphed slots
+    const intent = summarizeOpponentIntent(s.opponentSlots, s.opponent.chill);
     if (intent.ward > 0) {
       s.opponent.ward += intent.ward;
     }
@@ -414,9 +367,6 @@ export class GameEngine {
       const blocked = Math.min(wardBefore, intent.effectiveDmg);
       s.damageBlocked += blocked;
       s.score += blocked * 15;
-      if (s.rival.id === 'maren' && hpDmg > 0) {
-        s.player.venom += 2;
-      }
       this.emit('player_hit', { amount: intent.effectiveDmg, hpDmg, blocked });
 
       if (s.player.parry > 0) {
@@ -464,21 +414,12 @@ export class GameEngine {
     s.player.parry = 0;
     s.player.cyclesLeft = MAX_CYCLES_PER_TURN;
     s.opponent.chill = 0;
-    const wardKeep = this.activeRelic?.id === 'tideglass_lens' ? 0.75 : 0.5;
-    s.player.ward = Math.floor(s.player.ward * wardKeep);
+    s.player.ward = Math.floor(s.player.ward * 0.5);
     s.opponent.ward = Math.floor(s.opponent.ward * 0.5);
 
     const extraDraw = Math.min(3, preview.totalDraw);
     this.drawCards(DRAW_PER_TURN - Math.min(2, s.hand.length) + extraDraw);
     planOpponentTurn(s, this.rng);
-
-    if (s.opponent.hp <= s.opponent.maxHp * 0.5) {
-      s.rivalBanter = s.rival.banter?.hurt || s.rivalBanter;
-    } else if (preview.synergy.catalysts.length > 0) {
-      s.rivalBanter = s.rival.banter?.combo || s.rivalBanter;
-    } else {
-      s.rivalBanter = s.rival.banter?.open || s.rivalBanter;
-    }
 
     if (log.length === 0) {
       log.push(`Turn ${s.turn}: Counter ${intent.effectiveDmg} incoming dmg.`);
@@ -514,14 +455,6 @@ export class GameEngine {
       target.venom = Math.max(0, target.venom - 1);
       this.emit('status_tick', { who, kind: 'venom', amount: venomDmg });
     }
-  }
-
-  pickRelic(index) {
-    if (index >= 0 && index < RELICS.length) {
-      this.activeRelic = RELICS[index];
-      return true;
-    }
-    return false;
   }
 
   finishWin() {

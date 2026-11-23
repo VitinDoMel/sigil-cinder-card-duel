@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/best-card-game-20261122-1826/VitinDoMel/sigil-cinder-card-duel/rank.svg)](https://make.fun/bounty/best-card-game-20261122-1826/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-card-game-20261122-1826)
 [![reward](https://make.fun/badge/best-card-game-20261122-1826/VitinDoMel/sigil-cinder-card-duel/reward.svg)](https://make.fun/bounty/best-card-game-20261122-1826?utm_source=github&utm_medium=readme&utm_campaign=best-card-game-20261122-1826)
 
-An original tactical arcane card duel built in HTML5 Canvas. Read telegraphed rival intents and passives, chain adjacent suit Catalysts across the APEX +2 ritual board, counter heavy strikes with Ward/Chill/Parry, and draft campaign Relic Boons.
+An original arcane card duel built in HTML5 Canvas. Counter telegraphed opponent intents with Ward, Chill, and Parry, chain adjacent suit Catalysts across 3 ritual slots, and manage Aether against three escalating challengers.
 
 ## Run it
 
